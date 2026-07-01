@@ -227,27 +227,27 @@ const getStatsFromDB = async () => {
         },
       }),
 
-      tx.post.count({
+     tx.post.count({
         where: {
           status: PostStatus.ARCHIVE,
         },
       }),
 
-      tx.comment.count(),
+     await tx.comment.count(),
 
-      tx.comment.count({
+       tx.comment.count({
         where: {
           status: CommentStatus.APPROVE,
         },
       }),
 
-      tx.comment.count({
+       tx.comment.count({
         where: {
           status: CommentStatus.REJECTED,
         },
       }),
 
-      tx.post.aggregate({
+       tx.post.aggregate({
         _sum: {
           views: true,
         },

@@ -14,7 +14,17 @@ const getAllPost = catchAsync(async(req:Request, res:Response, next:NextFunction
     })
 })
 
-const getStats = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{})
+const getStats = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
+    const result  = await PostService.getStatsFromDB()
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Stats fetched successfully",
+        data: result
+    })
+
+
+})
 
 const getMyPosts = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
     const authorId = req.user?.id 
