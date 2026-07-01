@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
 import { ILoginUser } from "./auth.interface";
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import config from "../../config";
 import { jwtUtils } from "../../utils/jwt";
 
@@ -50,6 +50,44 @@ const AccessToken = jwtUtils.createToken(
   };
 };
 
+
+
+const refreshToken = async (payload: string)=>{
+  const verifyToken = jwtUtils.verifyToken(payload, config.jwt_refresh_secret)
+
+
+  if (!verifyToken.success) throw new Error(verifyToken.error)
+
+  const {id} = verifyToken.data as JwtPayload
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id
+    }
+  })
+
+  if (user.activeStatus === "INACTIVE") throw new Error("User is inactive")
+
+  const jwtPayload ={
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role
+  }
+
+  const AccessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_access_secret,
+    config.jwt_access_expires_in as SignOptions
+)
+
+  return AccessToken
+
+
+
+}
+
 export const authService = {
   loginUser,
+  refreshToken
 };
