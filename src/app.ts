@@ -6,6 +6,8 @@ import { userRouter } from './modules/user/user.route';
 import { authRoutes } from './modules/auth/auth.route';
 import { postsRouter } from './modules/posts/posts.route';
 import { commentRouter } from './modules/comment/comment.route';
+import { notFound } from './middleware/notfound';
+import { globalErrorHandler } from './middleware/globalError';
 
 const app:Application = express();
 app.use(cors({
@@ -26,5 +28,8 @@ app.use("/api/user", userRouter);
 app.use("/api/auth", authRoutes);
 app.use("/api/posts",postsRouter);
 app.use("/api/comments",commentRouter);
+
+app.use(notFound);
+app.use(globalErrorHandler);
 
 export default app; 

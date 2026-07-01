@@ -5,11 +5,7 @@ export const catchAsync = (fn:RequestHandler)=>{
         try {
            await fn(req, res, next)
         } catch (error) {
-            res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-                success: false,
-                message: "An error occurred",
-                error: error instanceof Error ? error.message : String(error)
-            });
+            next(error)
             
         }
 

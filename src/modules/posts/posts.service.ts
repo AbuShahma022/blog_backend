@@ -1,10 +1,86 @@
 import { CommentStatus, PostStatus } from "../../../generated/prisma/enums"
+import { PostWhereInput } from "../../../generated/prisma/models"
 import { prisma } from "../../lib/prisma"
-import { ICreatePost, IUpdatePost } from "./posts.interface"
+import { ICreatePost, IPostQuery, IUpdatePost } from "./posts.interface"
 
-const getAllPostFromDB = async ()=>{
+const getAllPostFromDB = async (PostQuery: IPostQuery)=>{
+    const limit = PostQuery.limit ? Number(PostQuery.limit) : 10
+    const page = PostQuery.page ? Number(PostQuery.page) : 1
+    const skip = (page - 1) * limit
+    const sortOrder = PostQuery.sortOrder || 'desc'
+    const sortBy = PostQuery.sortBy || 'createdAt'
+    const tag = PostQuery.tags ? JSON.parse(PostQuery.tags as string) : []
+    const tagArray = Array.isArray(tag) ? tag : []
+
+    const andConditions: PostWhereInput[] = []
+    //searching
+    if (PostQuery.searchTerm) {
+        andConditions.push({
+            OR:[
+                {
+                    title:{
+                        contains: PostQuery.searchTerm,
+                        mode: 'insensitive'
+                    }
+                },
+                {
+                    content:{
+                        contains: PostQuery.searchTerm,
+                        mode: 'insensitive'
+                    }
+                }
+            ]
+        })
+
+    }
+   //filtering
+    if (PostQuery.title){
+        andConditions.push({
+            title: PostQuery.title
+        })
+    }
+
+    if (PostQuery.content){
+        andConditions.push({
+            content: PostQuery.content
+        })
+    }
+
+     if (PostQuery.authorId){
+        andConditions.push({
+            authorId: PostQuery.authorId
+        })
+    }
+
+     if (PostQuery.isFeatured){
+        andConditions.push({
+            isFeatured: PostQuery.isFeatured
+        })
+    }
+
+     if (PostQuery.tags){
+        andConditions.push({
+            tags: {
+                hasSome: tagArray
+            }
+        })
+    }
+
+      if (PostQuery.status){
+        andConditions.push({
+            status: PostQuery.status
+        })
+    }
 
     const result = await prisma.post.findMany({
+        where: {
+            AND: andConditions
+        },
+        take: limit,
+        skip: skip,
+        orderBy: {
+            [sortBy]: sortOrder
+        },
         include: {
             author: {
                 omit: {
